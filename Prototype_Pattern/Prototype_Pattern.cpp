@@ -1,116 +1,131 @@
-/*
- * C++ Design Patterns: Prototype
- * Author: Jakub Vojvoda [github.com/JakubVojvoda]
- * 2016
- *
- * Source code is licensed under MIT License
- * (for more details see LICENSE)
- *
- */
-
 #include <iostream>
-#include <string>
+#include <list>
+#include <iterator>
+#include <map>
+using namespace std;
 
- /*
-  * Prototype
-  * declares an interface for cloning itself
-  */
-class Prototype
-{
+class Position {
 public:
-    virtual ~Prototype() {}
-
-    virtual Prototype* clone() = 0;
-    virtual std::string type() = 0;
-    // ...
+    Position() {}
+    Position(int x, int y) { x_ = x; y_ = y; }
+    int x_, y_;
 };
 
-/*
- * Concrete Prototype A and B
- * implement an operation for cloning itself
- */
-class ConcretePrototypeA : public Prototype
-{
+class Graphic {
 public:
-    ~ConcretePrototypeA() {}
-
-    Prototype* clone()
-    {
-        return new ConcretePrototypeA();
-    }
-    std::string type()
-    {
-        return "type A";
-    }
-    // ...
+    virtual void Draw(Position& pos) = 0;
+    virtual Graphic* Clone() = 0;
 };
 
-class ConcretePrototypeB : public Prototype
-{
+class Triangle : public Graphic {
 public:
-    ~ConcretePrototypeB() {}
-
-    Prototype* clone()
-    {
-        return new ConcretePrototypeB();
-    }
-    std::string type()
-    {
-        return "type B";
-    }
-    // ...
+    void Draw(Position& pos) {}
+    Graphic* Clone() { return new Triangle(*this); }
 };
 
-/*
- * Client
- * creates a new object by asking a prototype to clone itself
- */
-class Client
-{
+class Rectangle : public Graphic {
 public:
-    static void init()
-    {
-        types[0] = new ConcretePrototypeA();
-        types[1] = new ConcretePrototypeB();
-    }
+    void Draw(Position& pos) {}
+    Graphic* Clone() { return new Rectangle(*this); }
+};
 
-    static void remove()
-    {
-        delete types[0];
-        delete types[1];
-    }
+class GraphicComposite : public Graphic {
+public:
+    void Draw(Position& pos) {}
+    Graphic* Clone() {
+        GraphicComposite* pGraphicComposite = new GraphicComposite(*this);
+        list<Graphic*>::iterator iter1;
+        list<Graphic*>::iterator iter2;
 
-    static Prototype* make(const int index)
-    {
-        if (index >= n_types)
-        {
-            return nullptr;
+        iter2 = pGraphicComposite->components_.begin();
+        for (iter1 = components_.begin(); iter1 != components_.end(); iter1++) {
+            Graphic* pNewGraphic = (*iter1)->Clone();
+            *iter2 = pNewGraphic;
+            iter2++;
         }
-        return types[index]->clone();
+
+        return pGraphicComposite;
     }
-    // ...
 
 private:
-    static Prototype* types[2];
-    static int n_types;
+    list<Graphic*> components_;
 };
 
-Prototype* Client::types[2];
-int Client::n_types = 2;
+class Document {
+public:
+    void Add(Graphic* pGraphic) {}
+};
 
-int main()
+class Mouse {
+public:
+    bool IsLeftButtonPushed() {
+        static bool isPushed = false;
+        // -- GUI 함수 활용 Left Button 상태 체크
+        isPushed = !isPushed;
+        return isPushed;
+    }
+
+    Position GetPosition() {
+        Position pos;
+        // -- GUI 함수 활용 현재 마우스 위치 파악
+        return pos;
+    }
+};
+
+Mouse _mouse; // -- Global Variable
+
+class GraphicEditor {
+public:
+    void AddNewGraphics(Graphic* pSelected) {
+        Graphic* pObj = pSelected->Clone();
+        while (_mouse.IsLeftButtonPushed()) {
+            Position pos = _mouse.GetPosition();
+            pObj->Draw(pos);
+        }
+
+        curDoc_.Add(pObj);
+    }
+
+private:
+    Document curDoc_;
+};
+
+class Palette {
+public:
+    Palette() {
+        Graphic* pGraphic = new Triangle;
+        items_[1] = pGraphic;
+
+        pGraphic = new Rectangle;
+        items_[2] = pGraphic;
+
+        // -- 필요한 만큼 등록 
+    }
+
+    void RegisterNewGraphic(Graphic* pGraphic) {
+        items_[items_.size() + 1] = pGraphic;
+    }
+
+    Graphic* GetSelectedObj() {
+        return items_[GetItemOrder()];
+    }
+
+    int GetItemOrder() {
+        int i = 1;
+        Position curPos = _mouse.GetPosition();
+        // -- 현재 마우스 위치가 몇 번째 항목을 지정하는 지 판별
+        return i;
+    }
+
+private:
+    map<int, Graphic*> items_;
+};
+
+void
+main()
 {
-    Client::init();
+    Palette palette;
+    GraphicEditor ged;
 
-    Prototype* prototype1 = Client::make(0);
-    std::cout << "Prototype: " << prototype1->type() << std::endl;
-    delete prototype1;
-
-    Prototype* prototype2 = Client::make(1);
-    std::cout << "Prototype: " << prototype2->type() << std::endl;
-    delete prototype2;
-
-    Client::remove();
-
-    return 0;
+    ged.AddNewGraphics(palette.GetSelectedObj());
 }
