@@ -8,7 +8,7 @@
 ------------------------------
 ## 예제 소스로 '퍼사드' 분석   
 - 분석용 파일 저장 링크 :
-  https://github.com/minwn3318/Designed_Pattern/tree/main/Facade_Pattern
+  https://github.com/minwn3318/Designed_Pattern/blob/main/Facade_Pattern/Facade_PatternOpen.md
 - 참조용 :
   https://github.com/JakubVojvoda/design-patterns-cpp/blob/master/facade/Facade.cpp
   
