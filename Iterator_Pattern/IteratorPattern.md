@@ -13,6 +13,11 @@
 
 -------------
 ## 예제소스로 반복자 분석   
+- 오픈 소스 파일 링크 :    
+   https://github.com/minwn3318/Designed_Pattern/blob/main/Iterator_Pattern/Iterator_PatternOpen.md
+- 참조용 :   
+  https://github.com/JakubVojvoda/design-patterns-cpp/blob/master/iterator/Iterator.cpp
+  
 ```
 #include <iostream>
 #include <fstream>
