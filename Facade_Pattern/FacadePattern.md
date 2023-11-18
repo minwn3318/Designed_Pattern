@@ -7,7 +7,8 @@
   - 퍼사드 패턴은 디자인 패턴중 구조 패턴으로 여러 개의 하위 클래스들을 공통적인 상위클래스로 묶어 간편하게 하위 클래스의 객체를 사용할 수 있도록 한 디자인 패턴이다.    
 ------------------------------
 ## 예제 소스로 '퍼사드' 분석   
-- 분석용 출처 :
+- 분석용 파일 저장 링크 :
+  https://github.com/minwn3318/Designed_Pattern/tree/main/Facade_Pattern
 - 참조용 :
   https://github.com/JakubVojvoda/design-patterns-cpp/blob/master/facade/Facade.cpp
   
