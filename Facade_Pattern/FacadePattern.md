@@ -8,118 +8,103 @@
    
 ### 퍼사드 패턴 분석   
 ```
-/*
- * C++ Design Patterns: Facade
- * Author: Jakub Vojvoda [github.com/JakubVojvoda]
- * 2016
- *
- * Source code is licensed under MIT License
- * (for more details see LICENSE)
- *
- */
-
 #include <iostream>
+#include <string>
+#include <map>
+#include <list>
+#include <iterator>
+using namespace std;
 
-/*
- * Subsystems
- * implement more complex subsystem functionality
- * and have no knowledge of the facade
- */
-class SubsystemA
-{
-public:
-  void suboperation()
-  {
-    std::cout << "Subsystem A method" << std::endl;
-    // ...
-  }
-  void subsuboperation()
-  {
-      std::cout << "Subsystem A1 method" << std::endl;
-  }
-  // ...
+class SearchCond {
+  public :
+    SearchCond(map<string, string> nvList) {
+      condList_ = nvList;
+    }
+
+    bool CheckCond() {
+      // -- name, value 쌍들의 리스트에 대해 검색 조건을 검사한다.
+      // 예를 들어, age에 대해 숫자가 아닌 값이 설정되면 안되며, 
+      // 음수값등이 설정되면 안 된다. 
+      return true;
+    }
+  private :
+    map<string, string> condList_;
 };
 
-class SubsystemB
-{
-public:
-  void suboperation()
-  {
-    std::cout << "Subsystem B method" << std::endl;
-    // ...
-  }
-  void subsuboperation()
-  {
-      std::cout << "Subsystem B1 method" << std::endl;
-  }
-  // ...
+class ListData {
+  // -- 데이터베이스에서 검색되는 결과 레코드가 저장되기 위한 자료구조
 };
 
-class SubsystemC
-{
-public:
-  void suboperation()
-  {
-    std::cout << "Subsystem C method" << std::endl;
-    // ...
-  }
-  void subsuboperation()
-  {
-      std::cout << "Subsystem C1 method" << std::endl;
-  }
-  // ...
+class ListDBResult {
+  public :
+    int GetCount() {
+      return result_.size();
+    }
+
+    void InitIterator() {
+      iter_ = result_.begin();
+    }
+
+    ListData GetNextData() {
+      return *iter_++;
+    }
+  private:
+    list<ListData> result_;
+    list<ListData>::iterator iter_;
 };
 
-/*
- * Facade
- * delegates client requests to appropriate subsystem object
- * and unified interface that is easier to use
- */
-class Facade
-{
-public:
-  Facade() : subsystemA(), subsystemB(), subsystemC() {}
-  
-  void operation1()
-  {
-    subsystemA->suboperation();
-    subsystemB->suboperation();
-    // ...
-  }
-  
-  void operation2()
-  {
-    subsystemC->suboperation();
-    // ...
-  }
+class Database {
+  public :
+    Database() {
+      // -- 데이터베이스 관리 시스템과 연결을 수행함.
+    }
 
-  void operation3()
-  {
-      subsystemC->subsuboperation();
-      subsystemA->suboperation();
-  }
-  // ...
-  
-private:
-  SubsystemA *subsystemA;
-  SubsystemB *subsystemB;
-  SubsystemC *subsystemC;
-  // ...
+    bool Execute(string sql, ListDBResult& result) {
+      // -- sql 수행 결과를 result에 설정하되, sql 수행 과정에서 
+      // 문제가 있으면 false를 return하며, 그렇지 않은 경우에는 
+      // true 를 return한다.
+      return true;
+    }
+};
+
+class SQLGenerator {
+  public :
+    string GenerateSQL(SearchCond cond) {
+      string sql;
+
+      // -- 검색 조건에 따라 sql 문장을 생성
+      return sql;
+    }
 };
 
 
-int main()
+class DBHandler {
+  public :
+    bool Search(map<string, string> nvList, ListDBResult& result) {
+      SearchCond cond(nvList);
+      if (! cond.CheckCond()) {
+        cout << "잘못된 검색조건" << endl;
+        return false;
+      }
+
+      SQLGenerator generator;
+      string sql = generator.GenerateSQL(cond);
+
+      return db_.Execute(sql, result);
+    }
+  private :
+    Database db_;
+};
+
+void
+main()
 {
-  Facade *facade = new Facade();
-  
-  facade->operation1();
-  facade->operation2();
-  facade->operation3();
-  delete facade;
-  
-  return 0;
+  map<string, string> nvList;
+  ListDBResult result;
+
+  DBHandler handler;
+  handler.Search(nvList, result);
 }
-
 ```
 - 퍼사드 클래스에는 하위 클래스들의 객체가 포함되어야 한다.   
 - 퍼사드 클래스 안의 함수들은 하위 클래스들의 함수를 호출하는 기능이 구현 되어야 한다.   
