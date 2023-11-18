@@ -9,93 +9,144 @@
 -------------
 ## 반복자 패턴 분석   
 ```
-/*
- * C++ Design Patterns: Iterator
- * Author: Jakub Vojvoda [github.com/JakubVojvoda]
- * 2016
- *
- * Source code is licensed under MIT License
- * (for more details see LICENSE)
- *
- */
-
 #include <iostream>
-#include <stdexcept>
-#include <vector>
+#include <fstream>
+#include <string>
+#include <strstream>
+using namespace std;
 
-class Iterator;
-class ConcreteAggregate;
+static const int NA_POS = -1;
 
-/*
- * Aggregate
- * defines an interface for aggregates and it decouples your
- * client from the implementation of your collection of objects
- */
-class Aggregate
-{
-public:
-  virtual ~Aggregate() {}
-  
-  virtual Iterator *createIterator() = 0;
-  // ...
+class RegularExp {
+  public :
+    virtual bool Match(string context) = 0;
 };
 
-/*
- * Concrete Aggregate
- * has a collection of objects and implements the method
- * that returns an Iterator for its collection
- *
- */
-class ConcreteAggregate : public Aggregate
-{
-public:
-  ConcreteAggregate( const unsigned int size )
-  {
-    list = new int[5] {1,2,3,4,5};
-    count = size;
-  }
-  
-  ~ConcreteAggregate()
-  {
-    delete[] list;
-  }
-  
-  Iterator *createIterator();
-  
-  unsigned int size() const
-  {
-    return count;
-  }
-  
-  int at( unsigned int index )
-  {
-    return list[ index ];
-  }
-  // ...
+class LiteralExp : public RegularExp {
+  public :
+    LiteralExp(const char *pStr) : literal_(pStr) { }
+    LiteralExp(const string str) : literal_(str) { }
 
-private:
-  int *list;
-  unsigned int count;
-  // ...
+    bool Match(string context) {
+      string str;
+      ifstream ifs(context.data());
+      while (! ifs.eof()) {
+        ifs >> str;
+        if (literal_ == str) 
+          return true;
+      }
+      return false;
+    }
+  private :
+    string literal_;
 };
 
-/*
- * Iterator
- * provides the interface that all iterators must implement and
- * a set of methods for traversing over elements
- */
-class Iterator
-{
-public:
-  virtual ~Iterator() { /* ... */ }
-  
-  virtual void first() = 0;
-  virtual void next() = 0;
-  virtual bool isDone() const = 0;
-  virtual int currentItem() const = 0;
-  // ...
+class OrExp : public RegularExp {
+  public :
+    OrExp(RegularExp *pExp1, RegularExp *pExp2)
+      : pOrExp1_(pExp1), pOrExp2_(pExp2) { }
+
+    bool Match(string context) {
+      if (pOrExp1_->Match(context))
+        return true;
+      else {
+        return pOrExp2_->Match(context);
+      }
+    }
+  private :
+    RegularExp *pOrExp1_;
+    RegularExp *pOrExp2_;
 };
 
+class AndExp : public RegularExp {
+  public : 
+    AndExp(RegularExp *pExp1, RegularExp *pExp2)
+      : pAndExp1_(pExp1), pAndExp2_(pExp2) { }
+
+    bool Match(string context) {
+      return pAndExp1_->Match(context) && pAndExp2_->Match(context);
+    }
+  private :
+    RegularExp *pAndExp1_;
+    RegularExp *pAndExp2_;
+};
+
+RegularExp * 
+CreateRegularExp(string searchStr)
+{
+  int len = searchStr.length();
+  if (len == 0) return NULL;
+  else 
+    cout << "===>" << searchStr << endl;
+
+  int pos = searchStr.find_first_of("(&|");
+  if (searchStr[pos] == '(') {
+    int endParenPos = 0;
+    int parenCnt = 1;
+    for (int i = pos+1; i < len; i++) {
+      if (searchStr[i] == '(') parenCnt++;
+      else if (searchStr[i] == ')') parenCnt--;
+      else {}
+
+      if (parenCnt == 0) {
+        int nextOpPos = searchStr.find_first_of("&|", i+1);
+        if (nextOpPos != NA_POS) {
+          if (searchStr[nextOpPos] == '&') 
+            return new AndExp(CreateRegularExp(searchStr.substr(pos+1,i-pos-1)),
+                          CreateRegularExp(searchStr.substr(nextOpPos+1, 
+                                                          len-nextOpPos-1)));
+          else 
+            return new OrExp(CreateRegularExp(searchStr.substr(pos+1,i-pos-1)),
+                          CreateRegularExp(searchStr.substr(nextOpPos+1, 
+                                                          len-nextOpPos-1)));
+        }
+        else
+          return CreateRegularExp(searchStr.substr(pos+1, i-pos-1));
+      }
+    }
+    // -- searchStr 수식이 잘못된 것임
+    return NULL;
+  }
+  else if (searchStr[pos] == '&') {
+    if (pos >= len-1) return NULL;
+    return new AndExp(CreateRegularExp(searchStr.substr(0, pos)), 
+                  CreateRegularExp(searchStr.substr(pos+1, len-pos-1)));
+  }
+  else if (searchStr[pos] == '|') {
+    if (pos >= len-1) return NULL;
+    return new OrExp(CreateRegularExp(searchStr.substr(0, pos)), 
+                  CreateRegularExp(searchStr.substr(pos+1, len-pos-1)));
+  }
+  else {
+    // -- 앞뒤 White-space 제거
+    string literal;
+    strstream strm;
+    strm << searchStr;
+    strm >> literal;
+    if (literal.empty())
+      return NULL;
+
+    return new LiteralExp(literal);
+  }
+}
+
+void
+main()
+{
+  string str;
+  getline(cin, str);
+
+  RegularExp *pRegExp = CreateRegularExp(str);
+  if (pRegExp == NULL) {
+    cout << "Search Pattern Error" << endl;
+    exit(0);
+  }
+
+  if (pRegExp->Match("data.txt"))
+    cout << "Found the search string" << endl;
+  else
+    cout << "Not Exist the search string" << endl;
+}
 ```
 - 색인 객체와 컬렉션 객체가 존재해야 한다.   
 - 색인 객체와 컬렉션 객체는 인터페이스와 구현 클래스로 나뉜다.   
