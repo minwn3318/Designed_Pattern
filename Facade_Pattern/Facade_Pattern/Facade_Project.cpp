@@ -3,27 +3,39 @@
 #include <map>
 using namespace std;
 
+static unsigned int hour = 0;
+static bool ring = false;
+
 class SetTime {
 public :
 	void upTime()
 	{
-		cout << "시간을 1시간 올렸습니다." << endl;
+		hour++;
+		cout << "시간을 1시간 올렸습니다. : " << hour << endl;
 	}
 	void downTime()
 	{
-		cout << "시간을 1시간 내렸습니다." << endl;
+		hour--;
+		cout << "시간을 1시간 내렸습니다. : " << hour << endl;
 	}
 };
 
 class SetAlarm {
 public:
-	void onAlarm()
+	void turingUPAlarm()
 	{
-		cout << "알람을 켰습니다." << endl;
-	}
-	void offAlarm()
-	{
-		cout << "알람을 껐습니다." << endl;
+		ring = !ring;
+		switch (ring)
+		{
+		case true :
+			cout << "알람을 켰습니다. : " << ring << endl;
+			break;
+		case false :
+			cout << "알람을 껐습니다. : " << ring << endl;
+			break;
+		default:
+			break;
+		}
 	}
 };
 
@@ -43,13 +55,9 @@ public :
 	{
 		setTime->downTime();
 	}
-	void turnOnAlarm()
+	void turnAlarm()
 	{
-		setAlarm->onAlarm();
-	}
-	void turnOffAlarm()
-	{
-		setAlarm->offAlarm();
+		setAlarm->turingUPAlarm();
 	}
 };
 
@@ -57,10 +65,9 @@ int main()
 {
 	FacadeAlarm* alamr = new FacadeAlarm();
 	
-	alamr->uppingTime();
-	alamr->downdingTime();
-	alamr->turnOnAlarm();
-	alamr->turnOffAlarm();
+	alamr->turnAlarm();
+	alamr->turnAlarm();
+	alamr->turnAlarm();
 
 	return 0;
 }
